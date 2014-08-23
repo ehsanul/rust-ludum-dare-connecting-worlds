@@ -1,0 +1,76 @@
+[root]
+name = "connected-worlds"
+version = "0.0.1"
+dependencies = [
+ "nphysics3df32 0.1.0 (git+https://github.com/sebcrozet/nphysics#013578099c91ef560af55636dcb9cb6152764c41)",
+ "rust-ws 0.1.0",
+]
+
+[[package]]
+name = "dim3"
+version = "1.0.0"
+source = "git+https://github.com/sebcrozet/ncollide#128f70530e2f254d8840498b215960373ef03087"
+
+[[package]]
+name = "encoding"
+version = "0.1.0"
+source = "git+https://github.com/lifthrasiir/rust-encoding#a55053869726dc7b67560e5f25d18105ac316001"
+
+[[package]]
+name = "http"
+version = "0.1.0-pre"
+source = "git+https://github.com/chris-morgan/rust-http#b7f2fe742c01cb19a7d2873d9b96e005fcdc648c"
+dependencies = [
+ "openssl 0.0.0 (git+https://github.com/sfackler/rust-openssl.git#aba30b530b450b80c57271df61a86bd84df02084)",
+ "url 0.1.0 (git+https://github.com/servo/rust-url#dfd4376edb9edd53f4a0e77e49189fa9e8c8c133)",
+]
+
+[[package]]
+name = "nalgebra"
+version = "0.1.0"
+source = "git+https://github.com/sebcrozet/nalgebra#1b7cd5fe1fcc3d0a47c626d0672b4827b7e640ae"
+
+[[package]]
+name = "ncollide3df32"
+version = "0.1.0"
+source = "git+https://github.com/sebcrozet/ncollide#128f70530e2f254d8840498b215960373ef03087"
+dependencies = [
+ "dim3 1.0.0 (git+https://github.com/sebcrozet/ncollide#128f70530e2f254d8840498b215960373ef03087)",
+ "nalgebra 0.1.0 (git+https://github.com/sebcrozet/nalgebra#1b7cd5fe1fcc3d0a47c626d0672b4827b7e640ae)",
+]
+
+[[package]]
+name = "nphysics3df32"
+version = "0.1.0"
+source = "git+https://github.com/sebcrozet/nphysics#013578099c91ef560af55636dcb9cb6152764c41"
+dependencies = [
+ "dim3 1.0.0 (git+https://github.com/sebcrozet/ncollide#128f70530e2f254d8840498b215960373ef03087)",
+ "nalgebra 0.1.0 (git+https://github.com/sebcrozet/nalgebra#1b7cd5fe1fcc3d0a47c626d0672b4827b7e640ae)",
+ "ncollide3df32 0.1.0 (git+https://github.com/sebcrozet/ncollide#128f70530e2f254d8840498b215960373ef03087)",
+]
+
+[[package]]
+name = "openssl"
+version = "0.0.0"
+source = "git+https://github.com/sfackler/rust-openssl.git#aba30b530b450b80c57271df61a86bd84df02084"
+
+[[package]]
+name = "rust-crypto"
+version = "0.1.0"
+source = "git+https://github.com/DaGenix/rust-crypto#f8bf21ec972cc8c8f948bc9f08992d5777002a66"
+
+[[package]]
+name = "rust-ws"
+version = "0.1.0"
+dependencies = [
+ "http 0.1.0-pre (git+https://github.com/chris-morgan/rust-http#b7f2fe742c01cb19a7d2873d9b96e005fcdc648c)",
+ "rust-crypto 0.1.0 (git+https://github.com/DaGenix/rust-crypto#f8bf21ec972cc8c8f948bc9f08992d5777002a66)",
+]
+
+[[package]]
+name = "url"
+version = "0.1.0"
+source = "git+https://github.com/servo/rust-url#dfd4376edb9edd53f4a0e77e49189fa9e8c8c133"
+dependencies = [
+ "encoding 0.1.0 (git+https://github.com/lifthrasiir/rust-encoding#a55053869726dc7b67560e5f25d18105ac316001)",
+]

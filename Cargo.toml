@@ -1,0 +1,14 @@
+[package]
+
+name = "connected-worlds"
+version = "0.0.1"
+authors = ["Ehsanul Hoque <ehsanul@ehsanul.com>"]
+
+[dependencies.rust-ws]
+
+path = "../rust-ws"
+#git = "https://github.com/ehsanul/rust-ws"
+
+[dependencies.nphysics3df32]
+
+git = "https://github.com/sebcrozet/nphysics"
