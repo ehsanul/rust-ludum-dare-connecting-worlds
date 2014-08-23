@@ -12,7 +12,7 @@ use std::sync::{Mutex, Arc};
 use std::rc::Rc;
 use std::cell::RefCell;
 use nalgebra::na::{Vec3, Translation};
-use ncollide::geom::{Ball, Plane};
+use ncollide::geom::{Cuboid, Ball, Plane};
 use nphysics::world::World;
 use nphysics::object::RigidBody;
 
@@ -60,13 +60,13 @@ impl Server for GameServer {
         });
         w.headers.server = Some(String::from_str("GameServer"));
 
+        w.write(b"<base href='http://localhost:8000/'/>").unwrap(); // using python -m SimpleHTTPServer as asset server for now
+
+        w.write(b"<link rel='stylesheet' href='css/main.css'></script>").unwrap();
         w.write(b"<h1>Game Server</h1>").unwrap();
-        w.write(b"<script>
-                   ws = new WebSocket('ws://localhost:8001/');
-                   ws.onmessage = function(event){
-                     console.log(event.data);
-                   };
-                 </script>").unwrap();
+
+        w.write(b"<script src='js/three.min.js'></script>").unwrap();
+        w.write(b"<script src='js/main.js'></script>").unwrap();
     }
 }
 
@@ -124,8 +124,7 @@ fn main(){
     }
 
     // ball
-    let rad = 0.5;
-    let mut rb = RigidBody::new_dynamic(Ball::new(rad), 1.0f32, 0.3, 0.6);
+    let mut rb = RigidBody::new_dynamic(Cuboid::new(Vec3::new(1.0, 1.0, 1.0)), 1.0f32, 0.3, 0.6);
     rb.append_translation(&Vec3::new(15.0, 30.0, -15.0));
     let body = Rc::new(RefCell::new(rb.clone()));
 
@@ -140,7 +139,7 @@ fn main(){
 
     let fps = 30.0f32;
 
-    // XXX ncollide uses Rc and RefCell, which I can't share between tasks :(
+    // XXX nphysics uses Rc and RefCell, which I can't share between tasks :(
     // // broadcast loop
     // let broadcast_body = Arc::new(rb.clone());
     // spawn(proc() {
@@ -163,10 +162,10 @@ fn main(){
         let step_duration = Duration::milliseconds((1000.0 / fps) as i32);
         timer::sleep(step_duration); // FIXME take into account time spent calcuating step
 
-        println!("{}", (*body).borrow().center_of_mass());
+        //println!("{}", (*body).borrow().center_of_mass());
 
         let broadcast_message = box Message {
-            payload: Text(box json::encode((*body).borrow().center_of_mass())),
+            payload: Text(box json::encode((*body).borrow().transform_ref())),
             opcode: TextOp,
         };
         let mut netman = netman.lock();
