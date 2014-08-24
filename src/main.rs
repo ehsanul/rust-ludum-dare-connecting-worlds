@@ -7,6 +7,7 @@ extern crate nalgebra;
 extern crate serialize;
 
 use serialize::json;
+use serialize::json::ToJson;
 
 use std::sync::{Mutex, Arc};
 use std::rc::Rc;
@@ -63,10 +64,15 @@ impl Server for GameServer {
         w.write(b"<base href='http://localhost:8000/'/>").unwrap(); // using python -m SimpleHTTPServer as asset server for now
 
         w.write(b"<link rel='stylesheet' href='css/main.css'></script>").unwrap();
-        w.write(b"<h1>Game Server</h1>").unwrap();
 
-        w.write(b"<script src='js/three.min.js'></script>").unwrap();
-        w.write(b"<script src='js/main.js'></script>").unwrap();
+        w.write(b"
+            <body>
+                <script src='js/three.min.js'></script>
+                <script src='js/TrackballControls.js'></script>
+                <script src='js/underscore.min.js'></script>
+                <script src='js/main.js'></script>
+            </body>
+        ");
     }
 }
 
@@ -101,35 +107,50 @@ impl WebSocketServer for GameServer {
     }
 }
 
-fn main(){
-    //let x = Message { payload: Empty, opcode: PingOp };
-    //println!("{}", x);
+struct Body { b: Rc<RefCell<RigidBody>>, id: i32 }
+impl ToJson for Body {
+    fn to_json(&self) -> json::Json {
+        // UGH, use json::Object instead! after figuring out how to implement tojson for nphysics transforms
+        json::String(format!("[{}, {}]", self.id, json::encode((*self.b).borrow().transform_ref())))
+    }
+}
 
+fn main(){
     let mut world = World::new();
     world.set_gravity(Vec3::new(0.0f32, -9.81, 0.0));
+    let mut bodies = vec![];
+    let mut id = 0i32;
 
-    // planes
-    let normals = [
-        Vec3::new(-1.0f32, 1.0, -1.0 ),
-        Vec3::new(1.0f32, 1.0, -1.0 ),
-        Vec3::new(-1.0f32, 1.0, 1.0 ),
-        Vec3::new(1.0f32, 1.0, 1.0 )
-    ];
-    for n in normals.iter() {
-        let rb   = RigidBody::new_static(Plane::new(*n), 0.3, 0.6);
-        let body = Rc::new(RefCell::new(rb));
-
-        world.add_body(body.clone());
-        //graphics.add(body); FIXME instead, our ws stuff needs a reference to it right, to send coordinates to the browser?
-    }
-
-    // ball
-    let mut rb = RigidBody::new_dynamic(Cuboid::new(Vec3::new(1.0, 1.0, 1.0)), 1.0f32, 0.3, 0.6);
-    rb.append_translation(&Vec3::new(15.0, 30.0, -15.0));
-    let body = Rc::new(RefCell::new(rb.clone()));
+    let geom = Plane::new(Vec3::new(0.0f32, 1.0, 0.0));
+    let rb   = RigidBody::new_static(geom, 0.3, 0.6);
+    let body = Rc::new(RefCell::new(rb));
 
     world.add_body(body.clone());
-    //graphics.add(window, body);
+
+    let num     = 3;
+    let rad     = 1.0;
+    let shift   = rad * 2.0;
+    let centerx = shift * (num as f32) / 2.0;
+    let centery = 40.0 + shift / 2.0;
+    let centerz = shift * (num as f32) / 2.0;
+
+    for i in range(0u, num) {
+        for j in range(0u, num) {
+            for k in range(0u, num) {
+                let x = i as f32 * shift - centerx;
+                let y = j as f32 * shift + centery;
+                let z = k as f32 * shift - centerz;
+
+                let mut rb = RigidBody::new_dynamic(Cuboid::new(Vec3::new(1.0, 1.0, 1.0)), 1.0f32, 0.3, 0.6);
+                rb.append_translation(&Vec3::new(x, y, z));
+                let body = Rc::new(RefCell::new(rb.clone()));
+
+                world.add_body(body.clone());
+                bodies.push(Body { b: body.clone(), id: id});
+                id += 1;
+            }
+        }
+    }
 
     let netman = Arc::new(Mutex::new(NetMan { players: vec![] }));
     let cloned_netman = netman.clone();
@@ -162,10 +183,8 @@ fn main(){
         let step_duration = Duration::milliseconds((1000.0 / fps) as i32);
         timer::sleep(step_duration); // FIXME take into account time spent calcuating step
 
-        //println!("{}", (*body).borrow().center_of_mass());
-
         let broadcast_message = box Message {
-            payload: Text(box json::encode((*body).borrow().transform_ref())),
+            payload: Text(box bodies.to_json().to_string()),
             opcode: TextOp,
         };
         let mut netman = netman.lock();
